@@ -619,8 +619,11 @@ Item {
     if (row.kind === "agent") { root.launchAgent(row); return }
     root.usage = Usage.record(root.usage, row.id, Date.now())
     root.persistUsage()
-    root.dismiss()
+    // Launch before dismissing. dismiss() unloads this overlay, and anything
+    // it owns goes with it; an app library that lives in the overlay would
+    // already be torn down by the time launch() reached it.
     if (root.appLibrary) root.appLibrary.launch(row.id, row.name)
+    root.dismiss()
   }
 
   // Agents are CLIs, so they go into a terminal through omarchy-launch-tui with
@@ -723,8 +726,9 @@ Item {
 
   function removeEntry(row) {
     if (!row) return
-    root.dismiss()
+    // Before dismiss(), for the same reason as launch().
     if (root.appLibrary) root.appLibrary.remove(row.id, row.name)
+    root.dismiss()
   }
 
   function resetUsage(row) {

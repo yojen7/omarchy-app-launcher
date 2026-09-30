@@ -6,8 +6,9 @@ most.
 
 It runs as an `overlay` plugin inside `omarchy-shell` (Quickshell), so summoning
 it is an IPC call into a process that is already running — not a cold start. The
-app list comes from the shell's shared `AppLibrary`, so installing or removing an
-application updates the grid live, with no polling and no restart.
+app list comes from the shell's `AppLibrary` — the shared one where the shell
+hands it over, otherwise a private instance of the same component — so installing
+or removing an application updates the grid live, with no polling and no restart.
 
 Coding agents (Claude Code, Codex, Gemini, …) appear alongside applications and
 launch into a terminal.
@@ -347,7 +348,10 @@ inside `omarchy-shell`:
 - **It runs** `mkdir -p` for its state directory, `command -v` to probe which
   agents exist, `gtk-launch`/`uwsm-app` to launch an app, and
   `omarchy-launch-tui` to open an agent. Every interpolated value is
-  shell-quoted. For the System section it additionally runs two things, both
+  shell-quoted. The overlay's fallback instance of the stock `AppLibrary` is
+  built on each summon and runs that component's own two scans:
+  `hidden-entries.sh` for hidden desktop entries and a `find` over the icon
+  directories. For the System section it additionally runs two things, both
   bash: one batched script per summon that evaluates the menu's own
   `when:`/`checked:` conditions, and — only when you pick a System row — that
   row's `action:` verbatim. The toggle rows add a second batched read per summon

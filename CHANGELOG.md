@@ -24,6 +24,20 @@ Changes are grouped under `Added`, `Changed`, `Fixed`, `Removed`, `Deprecated`, 
   three places it lives: the GitHub About, `manifest.json` (which is what the
   plugin marketplace lists you by), and the README's opening line.
 
+### Fixed
+
+- The grid is no longer empty on current Omarchy ("No applications found",
+  while the System section and agent tiles still drew). Omarchy's third-party
+  plugin hardening hands the scoped shell API an `appLibrary` only for plugins
+  of kind `menu` (`shell.qml`, `createScopedPluginShell`), so this overlay got
+  `null` and `rebuild()` returned before adding a single application. When the
+  shell hands nothing over, the overlay now runs its own instance of the stock
+  `AppLibrary` component (`import qs.services`), so entries, hidden-entry
+  filtering, icons and the `uwsm-app -- gtk-launch` path are the shell's own.
+  That instance is unloaded with the overlay, so launching an application and
+  *Remove from launcher…* now act before the overlay dismisses itself rather
+  than after.
+
 ## [0.4.0] - 2026-09-03
 
 ### Added

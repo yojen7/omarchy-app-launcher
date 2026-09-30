@@ -4,6 +4,7 @@ import Quickshell.Io
 import Quickshell.Wayland
 import qs.Commons
 import qs.Ui
+import qs.services
 import "Usage.js" as Usage
 import "Agents.js" as Agents
 import "Menu.js" as Menu
@@ -15,7 +16,9 @@ import "Toggles.js" as Toggles
 // The app list itself is not ours: the shell's AppLibrary already watches
 // DesktopEntries, filters hidden/NoDisplay entries, resolves icon names to
 // files (re-indexing after an install), and launches under app-graphical.slice.
-// This plugin owns presentation, frecency ordering, and the "just added" badge.
+// When the shell does not hand one over, the overlay runs its own instance of
+// that same component. This plugin owns presentation, frecency ordering, and
+// the "just added" badge.
 Item {
   id: root
 
@@ -24,7 +27,14 @@ Item {
   property var shell: null
   property var manifest: null
 
-  readonly property var appLibrary: root.shell ? root.shell.appLibrary : null
+  // Since Omarchy's third-party plugin hardening the scoped shell API carries
+  // appLibrary only for plugins of kind "menu", so for this overlay it is null
+  // and the grid came up empty. Fall back to a private instance of the stock
+  // component: same entries, filtering, icons and launch path. It lives and
+  // dies with the overlay, which is why launch() and removeEntry() call it
+  // before dismiss().
+  AppLibrary { id: localAppLibrary }
+  readonly property var appLibrary: (root.shell && root.shell.appLibrary) ? root.shell.appLibrary : localAppLibrary
   readonly property string pluginId: (root.manifest && root.manifest.id) || "tyrsolution.app-launcher"
   readonly property string stateDir: Quickshell.env("HOME") + "/.local/state/omarchy/app-launcher"
 
